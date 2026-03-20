@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KP165S 數位手冊</title>
+    <style>
+        :root { --blue: #00D1FF; --green: #E8F5E9; --dark-green: #2E7D32; }
+        body { font-family: sans-serif; display: flex; flex-direction: column; height: 100vh; margin: 0; background: #fff; }
+        
+        /* 固定頂部 */
+        header { display: flex; justify-content: space-between; padding: 15px 20px; align-items: center; border-bottom: 1px solid #eee; background: white; }
+        .logo-img { height: 40px; cursor: pointer; }
+        .wire-btn { border: 2px solid #007bff; color: #007bff; padding: 6px 15px; border-radius: 20px; text-decoration: none; font-size: 14px; font-weight: bold; }
+
+        /* 中間切換區域 */
+        main { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; align-items: center; }
+        .page { display: none; width: 100%; text-align: center; }
+        .active { display: flex; flex-direction: column; align-items: center; }
+
+        /* 元件樣式 */
+        h1 { font-size: 40px; margin: 10px 0; }
+        .start-btn { background: #007bff; color: white; padding: 15px 60px; border-radius: 30px; text-decoration: none; font-weight: bold; margin-top: 30px; }
+        .step-box { width: 85%; padding: 20px; margin: 10px 0; border: 2px solid #007bff; border-radius: 12px; font-weight: bold; cursor: pointer; }
+        .back-btn { color: #007bff; text-decoration: none; margin-bottom: 20px; display: inline-block; font-weight: bold; border: 1px solid #007bff; padding: 5px 15px; border-radius: 15px; }
+        
+        /* 步驟2：目錄清單樣式 */
+        .func-list { display: flex; flex-direction: column; gap: 12px; width: 90%; margin: 0 auto; padding-bottom: 30px; }
+        .func-btn { background: #fff; border: 2px solid #007bff; padding: 15px; border-radius: 10px; text-align: left; font-weight: bold; cursor: pointer; color: #007bff; font-size: 15px; }
+        .hw-btn { border-color: #ff5722; color: #ff5722; } /* 硬體重置功能以不同顏色標示 */
+
+        /* 程式碼輸入行 */
+        .code-line { background: #333; color: white; padding: 15px; border-radius: 8px; font-size: 24px; font-family: monospace; display: flex; justify-content: center; align-items: center; gap: 5px; flex-wrap: wrap; line-height: 1.8; width: 90%; margin: 0 auto; }
+        .fixed { color: var(--blue); font-weight: bold; }
+        .input-pw { background: var(--green); color: var(--dark-green); border: none; font-size: 20px; width: 80px; text-align: center; border-radius: 4px; outline: none; padding: 2px 0; }
+        .input-pw::placeholder { color: #A5D6A7; font-size: 14px; }
+
+        /* 動態表格樣式 */
+        .relay-table { width: 90%; margin: 20px auto; border-collapse: collapse; text-align: center; font-size: 14px; }
+        .relay-table th, .relay-table td { border: 1px solid #ccc; padding: 10px; }
+        .relay-table th { background: #f4f4f4; color: #333; }
+        .relay-table input[type=checkbox] { transform: scale(1.5); }
+
+        /* 提示樣式 */
+        .status-tip { margin-top: 20px; text-align: left; width: 90%; font-size: 14px; margin-left: auto; margin-right: auto; line-height: 1.6; }
+        .indicator { width: 12px; height: 12px; border-radius: 50%; display: inline-block; margin-right: 8px; }
+        .blink-green { background: #00ff00; animation: blink 1s infinite; box-shadow: 0 0 8px #00ff00; }
+        .solid-red { background: #ff0000; box-shadow: 0 0 8px #ff0000; }
+        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+
+        /* 圖片樣式 */
+        .diag-img { max-width: 100%; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); margin-top: 10px; }
+
+        /* 固定底部 */
+        footer { text-align: center; padding: 15px; color: #888; font-size: 12px; border-top: 1px solid #eee; background: white; }
+    </style>
+</head>
+<body>
+
+    <header>
+        <img src="assets/logo.png" alt="Logo" class="logo-img" onclick="showPage('homePage')">
+        <a href="javascript:void(0)" class="wire-btn" onclick="showPage('wirePage')">接線說明</a>
+    </header>
+
+    <main id="content">
+        <div id="homePage" class="page active">
+            <h1>KP165S</h1>
+            <p>數位手冊</p>
+            <a href="javascript:void(0)" class="start-btn" onclick="showPage('menuPage')">開始操作</a>
+        </div>
+
+        <div id="menuPage" class="page">
+            <div class="step-box" onclick="showPage('step1Page')">1. 進入設定</div>
+            <div style="color:#ccc; font-size:24px; margin: 5px 0;">↓</div>
+            <div class="step-box" onclick="showPage('step2MenuPage')">2. 設定門鎖</div>
+            <div style="color:#ccc; font-size:24px; margin: 5px 0;">↓</div>
+            <div class="step-box" onclick="showPage('step3Page')">3. 結束設定</div>
+        </div>
+
+        <div id="step1Page" class="page">
+            <a href="javascript:void(0)" onclick="showPage('menuPage')" class="back-btn">← 返回首頁目錄</a>
+            <h3>步驟 1：進入設定模式</h3>
+            <div class="code-line">
+                <span class="fixed">#9#</span>
+                <input type="tel" id="pwInput" class="input-pw" inputmode="numeric" maxlength="6" value="123456" oninput="validateInput(this); localStorage.setItem('master_pw', this.value);">
+            </div>
+            <div class="status-tip">
+                <span class="indicator blink-green"></span> <strong>提示：</strong> 右邊綠燈閃爍中
+                <br><small style="color: #666;">* 出廠預設為 123456，輸入自動儲存</small>
+            </div>
+        </div>
+
+        <div id="step2MenuPage" class="page">
+            <a href="javascript:void(0)" onclick="showPage('menuPage')" class="back-btn">← 返回首頁目錄</a>
+            <h3>步驟 2：設定門鎖功能</h3>
+            <div class="func-list">
+                <div class="func-btn" onclick="showPage('f3')">1. 更改主密碼</div>
+                <div class="func-btn" onclick="showPage('f4')">2. 設定密碼位數</div>
+                <div class="func-btn" onclick="showPage('f5')">3. 增加使用者密碼</div>
+                <div class="func-btn" onclick="showPage('f6')">4. 單一刪除密碼</div>
+                <div class="func-btn" onclick="showPage('f7')">5. 全部刪除密碼</div>
+                <div class="func-btn" onclick="showPage('f8')">6. 主繼電器時間</div>
+                <div class="func-btn" onclick="showPage('f9')">7. 副繼電器時間</div>
+                <div class="func-btn" onclick="showPage('f10')">8. 電晶體#3 時間</div>
+                <div class="func-btn" onclick="showPage('f11')">9. 電晶體#4 時間</div>
+                <div class="func-btn" onclick="showPage('f12')">10. 鍵盤蜂鳴器</div>
+                <div class="func-btn" onclick="showPage('f13')">11. 錯誤次數及停止秒數</div>
+                <div class="func-btn" onclick="showPage('f14')">12. 門位訊號偵測</div>
+                <div class="func-btn" onclick="showPage('f15')">13. 同密碼無效時間</div>
+                <div class="func-btn" onclick="showPage('f16')">14. 按鍵背光開關</div>
+                <div class="func-btn hw-btn" onclick="showPage('f17')">15. 主密碼恢復出廠值</div>
+                <div class="func-btn hw-btn" onclick="showPage('f18')">16. 恢復出廠設定值 (參數)</div>
+            </div>
+        </div>
+
+        <div id="f3" class="page">
+            <a href="javascript:void(0)" onclick="showPage('step2MenuPage')" class="back-btn">← 返回上一頁</a>
+            <h3>更改主密碼</h3>
+            <div class="code-line">
+                <span class="fixed">10#</span>
+                <input type="tel" class="input-pw" placeholder="舊密碼" maxlength="6" oninput="validateInput(this)">
+                <span class="fixed">#</span>
+                <input type="tel" class="input-pw" placeholder="新密碼" maxlength="6" oninput="validateInput(this)">
+                <span class="fixed">#</span>
+            </div>
+        </div>
+
+        <div id="f4" class="page">
+            <a href="javascript:void(0)" onclick="showPage('step2MenuPage')" class="back-btn">← 返回上一頁</a>
+            <h3>設定密碼位數</h3>
+            <div class="code-line">
+                <span class="fixed">11#</span>
+                <input type="tel" class="input-pw" placeholder="1~6" maxlength="1" style="width: 50px;" oninput="this.value=this.value.replace(/[^1-6]/g, '')">
+                <span class="fixed">#</span>
+            </div>
+            <div class="status-tip">
+                <small>* 欲更改密碼位數，須先將使用者密碼「全部刪除」</small><br>
+                <small>* 出廠默認：4位數</small>
+            </div>
+        </div>
+
+        <div id="f5" class="page">
+            <a href="javascript:void(0)" onclick="showPage('step2MenuPage')" class="back-btn">← 返回上一頁</a>
+            <h3>增加使用者密碼</h3>
+            <div class="code-line">
+                <span class="fixed">12#</span>
+                <input type="tel" class="input-pw" placeholder="輸入密碼" oninput="validateInput(this)" style="width: 85px;">
+                <span class="fixed">#</span>
+                <input type="tel" class="input-pw" placeholder="再次輸入" oninput="validateInput(this)" style="width: 85px;">
+                <span class="fixed">#</span>
+                <span id="relayDisplay" class="input-pw" style="width: 60px; display: inline-block; pointer-events: none;">1000</span>
+                <span class="fixed">#</span>
+            </div>
+            <table class="relay-table">
+                <tr>
+                    <th>繼電器名稱</th>
+                    <th>啟用</th>
+                </tr>
+                <tr>
+                    <td>1. 主繼電器</td>
+                    <td><input type="checkbox" id="r1" checked onchange="updateRelay()"></td>
+                </tr>
+                <tr>
+                    <td>2. 副繼電器</td>
+                    <td><input type="checkbox" id="r2" onchange="updateRelay()"></td>
+                </tr>
+                <tr>
+                    <td>3. 晶體輸出</td>
+                    <td><input type="checkbox" id="r3" onchange="updateRelay()"></td>
+                </tr>
+                <tr>
+                    <td>4. 晶體輸出</td>
+                    <td><input type="checkbox" id="r4" onchange="updateRelay()"></td>
+                </tr>
+            </table>
+        </div>
+
+        <div id="f6" class="page">
+            <a href="javascript:void(0)" onclick="showPage('step2MenuPage')" class="back-btn">← 返回上一頁</a>
+            <h3>單一刪除密碼</h3>
+            <div class="code-line">
+                <span class="fixed">13#</span>
+                <input type="tel" class="input-pw" placeholder="刪除密碼" oninput="validateInput(this)">
+                <span class="fixed">#</span>
+                <input type="tel" class="input-pw" placeholder="再次輸入" oninput="validateInput(this)">
+                <span class="fixed">#</span>
+            </div>
+        </div>
+
+        <div id="f7" class="page">
+            <a href="javascript:void(0)" onclick="showPage('step2MenuPage')" class="back-btn">← 返回上一頁</a>
+            <h3>全部刪除密碼</h3>
+            <div class="code-line">
+                <span class="fixed">14#</span>
+                <span class="fixed" style="margin: 0 5px;">000000</span>
+                <span class="fixed">#</span>
+                <span class="fixed" style="margin: 0 5px;">000000</span>
+                <span class="fixed">#</span>
+            </div>
+            <div class="status-tip">
+                <small>* 提示：全部刪除密碼為固定指令，完成後清除所有密碼</small>
+            </div>
+        </div>
+
+        <div id="f8" class="page">
+            <a href="javascript:void(0)" onclick="showPage('step2MenuPage')" class="back-btn">← 返回上一頁</a>
+            <h3>主繼電器時間</h3>
+            <div class="code-line">
+                <span class="fixed">31#</span>
+                <input type="tel" class="input-pw" placeholder="0~60" maxlength="2" style="width: 50px;" oninput="this.value=this.value.replace(/\D/g, ''); if(this.value>60) this.value='60';">
+                <span class="fixed">秒#</span>
+            </div>
+        </div>
+
+        <div id="f9" class="page">
+            <a href="javascript:void(0)" onclick="showPage('step2MenuPage')" class="back-btn">← 返回上一頁</a>
+            <h3>副繼電器時間</h3>
+            <div class="code-line">
+                <span class="fixed">32#</span>
+                <input type="tel" class="input-pw" placeholder="0~60" maxlength="2" style="width: 50px;" oninput="this.value=this.value.replace(/\D/g, ''); if(this.value>60) this.value='60';">
+                <span class="fixed">秒#</span>
+            </div>
+        </div>
+
+        <div id="f10" class="page">
+            <a href="javascript:void(0)" onclick="showPage('step2MenuPage')" class="back-btn">← 返回上一頁</a>
+            <h3>電晶體 #3 時間</h3>
+            <div class="code-line">
+                <span class="fixed">33#</span>
+                <input type="tel" class="input-pw" placeholder="0~60" maxlength="2" style="width: 50px;" oninput="this.value=this.value.replace(/\D/g, ''); if(this.value>60) this.value='60';">
+                <span class="fixed">秒#</span>
+            </div>
+        </div>
+
+        <div id="f11" class="page">
+            <a href="javascript:void(0)" onclick="showPage('step2MenuPage')" class="back-btn">← 返回上一頁</a>
+            <h3>電晶體 #4 時間</h3>
+            <div class="code-line">
+                <span class="fixed">34#</span>
+                <input type="tel" class="input-pw" placeholder="0~60" maxlength="2" style="width: 50px;" oninput="this.value=this.value.replace(/\D/g, ''); if(this.value>60) this.value='60';">
+                <span class="fixed">秒#</span>
+            </div>
+        </div>
+
+        <div id="f12" class="page">
+            <a href="javascript:void(0)" onclick="showPage('step2MenuPage')" class="back-btn">← 返回上一頁</a>
+            <h3>鍵盤蜂鳴器聲開/關</h3>
+            <div class="code-line">
+                <span class="fixed">40#</span>
+                <input type="tel" class="input-pw" placeholder="0/1" maxlength="1" style="width: 40px;" oninput="this.value=this.value.replace(/[^0-1]/g, '')">
+                <span class="fixed">#</span>
+            </div>
+            <div class="status-tip">
+                <small>* 0 = 關閉鍵盤聲</small><br>
+                <small>* 1 = 開啟鍵盤聲</small>
+            </div>
+        </div>
+
+        <div id="f13" class="page">
+            <a href="javascript:void(0)" onclick="showPage('step2MenuPage')" class="back-btn">← 返回上一頁</a>
+            <h3>錯誤次數及停止秒數</h3>
+            <div class="code-line">
+                <span class="fixed">51#</span>
+                <input type="tel" class="input-pw" placeholder="2~7次" maxlength="1" style="width: 60px;" oninput="this.value=this.value.replace(/[^2-7]/g, '')">
+                <span class="fixed">#</span>
+                <input type="tel" class="input-pw" placeholder="1~60秒" maxlength="2" style="width: 65px;" oninput="this.value=this.value.replace(/\D/g, ''); if(this.value>60) this.value='60';">
+                <span class="fixed">#</span>
+            </div>
+            <div class="status-tip">
+                <small>* 錯誤次數可設：2~7 次</small><br>
+                <small>* 停止秒數可設：1~60 秒</small><br>
+                <small>* 出廠默認：3次 60秒</small>
+            </div>
+        </div>
+
+        <div id="f14" class="page">
+            <a href="javascript:void(0)" onclick="showPage('step2MenuPage')" class="back-btn">← 返回上一頁</a>
+            <h3>門位訊號偵測</h3>
+            <div class="code-line">
+                <span class="fixed">52#</span>
+                <input type="tel" class="input-pw" placeholder="0/1" maxlength="1" style="width: 40px;" oninput="this.value=this.value.replace(/[^0-1]/g, '')">
+                <span class="fixed">#</span>
+            </div>
+            <div class="status-tip">
+                <small>* 0 = 需要 (關門時才能操作鍵盤)</small><br>
+                <small>* 1 = 不需要</small><br>
+                <small>* 出廠默認：0</small>
+            </div>
+        </div>
+
+        <div id="f15" class="page">
+            <a href="javascript:void(0)" onclick="showPage('step2MenuPage')" class="back-btn">← 返回上一頁</a>
+            <h3>同密碼開門無效時間</h3>
+            <div class="code-line">
+                <span class="fixed">53#</span>
+                <input type="tel" class="input-pw" placeholder="0~4" maxlength="1" style="width: 50px;" oninput="this.value=this.value.replace(/[^0-4]/g, '')">
+                <span class="fixed">分#</span>
+            </div>
+            <div class="status-tip">
+                <small>* 防止尾隨，設定時間內不得輸入同組密碼</small><br>
+                <small>* 0 = 沒有限制 (出廠默認)</small>
+            </div>
+        </div>
+
+        <div id="f16" class="page">
+            <a href="javascript:void(0)" onclick="showPage('step2MenuPage')" class="back-btn">← 返回上一頁</a>
+            <h3>按鍵背光開關</h3>
+            <div class="code-line">
+                <span class="fixed">54#</span>
+                <input type="tel" class="input-pw" placeholder="0~2" maxlength="1" style="width: 50px;" oninput="this.value=this.value.replace(/[^0-2]/g, '')">
+                <span class="fixed">#</span>
+            </div>
+            <div class="status-tip">
+                <small>* 0 = 關閉背光</small><br>
+                <small>* 1 = 按壓時自動亮起 (出廠默認)</small><br>
+                <small>* 2 = 背光恆亮</small>
+            </div>
+        </div>
+
+        <div id="f17" class="page">
+            <a href="javascript:void(0)" onclick="showPage('step2MenuPage')" class="back-btn">← 返回上一頁</a>
+            <h3>主密碼恢復出廠值</h3>
+            <div class="status-tip" style="background: #fdfdfd; border:1px solid #ddd; padding:15px; border-radius:8px;">
+                <strong>密碼控制器在通電狀態下：</strong><br><br>
+                (1) 拔除 jp2 黑色短路片 (綠燈號閃爍)<br><br>
+                (2) 過 5 秒鐘後再將短路片插回 jp2 位置 (恢復待機紅燈)<br><br>
+                (3) 密碼控制器即恢復出廠主密碼 123456 (不會刪除輸入過的密碼)
+            </div>
+        </div>
+
+        <div id="f18" class="page">
+            <a href="javascript:void(0)" onclick="showPage('step2MenuPage')" class="back-btn">← 返回上一頁</a>
+            <h3>恢復出廠設定值 (參數)</h3>
+            <div class="status-tip" style="background: #fdfdfd; border:1px solid #ddd; padding:15px; border-radius:8px;">
+                (1) 先切斷密碼控制器的電源。<br><br>
+                (2) 按住 <strong>＊、＃</strong> 兩鍵不放。<br><br>
+                (3) 重新接上電源，過 10 秒鐘後，紅/黃燈號閃爍。<br><br>
+                (4) 燈號停止後，即恢復出廠設定參數值，並<strong>刪除全部使用者密碼</strong>及所有設定。
+            </div>
+        </div>
+
+        <div id="step3Page" class="page">
+            <a href="javascript:void(0)" onclick="showPage('menuPage')" class="back-btn">← 返回首頁目錄</a>
+            <h3>步驟 3：結束編程</h3>
+            <div class="code-line">
+                <span class="fixed">**#</span>
+            </div>
+            <div class="status-tip">
+                <span class="indicator solid-red"></span> <strong>提示：</strong> 結束後左邊紅燈會常亮
+            </div>
+        </div>
+
+        <div id="wirePage" class="page">
+            <a href="javascript:void(0)" onclick="showPage('homePage')" class="back-btn">← 返回首頁</a>
+            <h3>接線電路圖</h3>
+            <img src="assets/wiringDiagram.jpg" alt="接線說明" class="diag-img">
+        </div>
+    </main>
+
+    <footer>© 2026 LI SHYANG TECH. All rights reserved.</footer>
+
+    <script>
+        function showPage(id) {
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            const target = document.getElementById(id);
+            if(target) {
+                target.classList.add('active');
+            }
+            window.scrollTo(0,0);
+        }
+
+        // 僅保留密碼格式等無限制的數字過濾
+        function validateInput(input) {
+            input.value = input.value.replace(/\D/g, '');
+        }
+
+        // 動態計算繼電器控制代碼
+        function updateRelay() {
+            const r1 = document.getElementById('r1').checked ? '1' : '0';
+            const r2 = document.getElementById('r2').checked ? '1' : '0';
+            const r3 = document.getElementById('r3').checked ? '1' : '0';
+            const r4 = document.getElementById('r4').checked ? '1' : '0';
+            document.getElementById('relayDisplay').innerText = r1 + r2 + r3 + r4;
+        }
+
+        // 載入時讀取第一步的主密碼
+        window.onload = function() {
+            const saved = localStorage.getItem('master_pw');
+            if(saved) {
+                const pwInput = document.getElementById('pwInput');
+                if(pwInput) pwInput.value = saved;
+            }
+        }
+    </script>
+</body>
+</html>
